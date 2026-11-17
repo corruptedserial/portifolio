@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Projetos | Enzo Silva</title>
+
+    <meta name="description"
+        content="Conheça os projetos de Enzo Silva nas áreas de programação, desenvolvimento web e tecnologia.">
+
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="Projetos | Enzo Silva">
+    <meta property="og:description"
+        content="Conheça os projetos que desenvolvi na área de tecnologia.">
+    <meta property="og:type" content="website">
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <header class="header">
+
+        <nav class="menu" aria-label="Navegação principal">
+
+            <a href="index.html" class="logo">
+                ENZO<span>.</span>
+            </a>
+
+            <ul class="menu-links">
+                <li>
+                    <a href="index.html">Início</a>
+                </li>
+
+                <li>
+                    <a href="quemsoueu.html">Quem sou eu</a>
+                </li>
+
+                <li>
+                    <a href="portfolio.html" aria-current="page">
+                        Portfólio
+                    </a>
+                </li>
+            </ul>
+
+            <a href="login.html"
+                class="login-link"
+                aria-label="Entrar na área restrita">
+
+                <svg width="22" height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true">
+
+                    <rect x="3" y="11"
+                        width="18" height="11" rx="2"/>
+
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+
+                </svg>
+
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <main>
+
+        <!-- INTRODUÇÃO -->
+
+        <section class="pagina-intro">
+
+            <span class="destaque">MEU TRABALHO</span>
+
+            <h1>Meus projetos<span>.</span></h1>
+
+            <p>
+                Ideias transformadas em projetos.
+                Conheça alguns dos trabalhos que desenvolvi
+                durante minha jornada na tecnologia.
+            </p>
+
+        </section>
+
+
+        <!-- PROJETOS -->
+
+        <section class="projetos-section">
+
+            <div class="projetos-cabecalho">
+
+                <div>
+                    <span class="destaque">PORTFÓLIO</span>
+                    <h2>Projetos desenvolvidos</h2>
+                </div>
+
+                <span id="contador-projetos">
+                    Carregando...
+                </span>
+
+            </div>
+
+
+            <div id="lista-projetos" class="lista-projetos">
+
+                <div class="estado-projetos">
+                    <div class="loader"></div>
+                    <p>Carregando projetos...</p>
+                </div>
+
+            </div>
+
+
+            <p id="mensagem-projetos"
+                class="mensagem-projetos"
+                role="status"
+                aria-live="polite">
+            </p>
+
+        </section>
+
+    </main>
+
+
+    <footer class="footer">
+
+        <p>© 2026 Enzo Silva. Todos os direitos reservados.</p>
+
+        <div class="footer-links">
+            <a href="contato.html">Contato</a>
+            <a href="index.html">Início</a>
+        </div>
+
+    </footer>
+
+
+    <!-- SUPABASE -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- SCRIPT DOS PROJETOS -->
+
+    <script src="portfolio.js"></script>
+
+</body>
+
+</html>

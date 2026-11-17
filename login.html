@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Enzo Silva</title>
+    <meta name="description" content="Acesse a área administrativa do portfólio pessoal de Enzo Silva.">
+
+    <meta name="robots" content="noindex, nofollow">
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="login.js" defer></script>
+</head>
+<body>
+
+    <header class="header">
+        <nav class="menu" aria-label="Navegação principal">
+            <a href="index.html" class="logo">ENZO<span>.</span></a>
+
+            <ul class="menu-links">
+                <li><a href="index.html">Início</a></li>
+                <li><a href="quemsoueu.html">Quem sou eu</a></li>
+                <li><a href="portfolio.html">Portfólio</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="login-container">
+
+        <section class="login-box">
+
+            <span class="destaque">ÁREA RESTRITA</span>
+
+            <h1>Bem-vindo de volta!</h1>
+
+            <p>Entre para acessar o painel administrativo.</p>
+
+            <form id="form-login">
+
+                <div class="campo">
+                   <label for="usuario">E-mail</label>
+                    <input
+                        type="text"
+                        id="usuario"
+                        name="usuario"
+                        placeholder="Digite seu usuário ou e-mail"
+                        autocomplete="username"
+                        required>
+                </div>
+
+                <div class="campo">
+                    <label for="senha">Senha</label>
+                    <input
+                        type="password"
+                        id="senha"
+                        name="senha"
+                        placeholder="Digite sua senha"
+                        autocomplete="current-password"
+                        required>
+                </div>
+
+                <button type="submit" class="botao">
+                    Entrar
+                </button>
+
+                <p id="mensagem-login" role="alert" aria-live="polite"></p>
+
+            </form>
+
+            <a href="index.html" class="voltar">
+                Voltar para o início
+            </a>
+
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Enzo Silva. Todos os direitos reservados.</p>
+    </footer>
+    
+
+</body>
+</html>
