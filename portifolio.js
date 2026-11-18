@@ -1,7 +1,7 @@
 
-// ==========================================
-// CONFIGURAÇÃO SUPABASE
-// ==========================================
+/* =====================================
+   CONFIGURAÇÃO SUPABASE
+===================================== */
 
 const SUPABASE_URL = "https://zivdjnfypxjogmwmzfxl.supabase.co";
 
@@ -13,23 +13,22 @@ const db = window.supabase.createClient(
 );
 
 
-// ==========================================
-// ELEMENTOS DA PÁGINA
-// ==========================================
+/* =====================================
+   ELEMENTOS HTML
+===================================== */
 
 const lista = document.getElementById("lista-projetos");
-const mensagem = document.getElementById("mensagem-projetos");
 const contador = document.getElementById("contador-projetos");
+const mensagem = document.getElementById("mensagem-projetos");
 
 
-// ==========================================
-// CARREGAR PROJETOS
-// ==========================================
+/* =====================================
+   CARREGAR PROJETOS
+===================================== */
 
 async function carregarProjetos() {
 
     lista.innerHTML = "<p>Carregando projetos...</p>";
-
     mensagem.textContent = "";
 
     try {
@@ -43,87 +42,77 @@ async function carregarProjetos() {
             throw error;
         }
 
+        console.log("Projetos recebidos:", data);
+
+        // Verifica se existem projetos
         if (!data || data.length === 0) {
 
             lista.innerHTML = `
                 <div class="estado-projetos">
                     <h3>Nenhum projeto encontrado</h3>
-                    <p>Os projetos aparecerão aqui quando forem cadastrados.</p>
+                    <p>Cadastre um projeto para ele aparecer aqui.</p>
                 </div>
             `;
 
             contador.textContent = "0 projetos";
-
             return;
         }
 
+        // Atualiza contador
         contador.textContent =
             `${data.length} ${data.length === 1 ? "projeto" : "projetos"}`;
 
         lista.innerHTML = "";
 
+        // Cria os cards
         data.forEach(projeto => {
 
-            // CARTÃO
             const card = document.createElement("article");
             card.className = "projeto-card";
 
+            // Imagem
+            if (projeto.foto) {
 
-            // IMAGEM
-            const imagem = document.createElement("img");
-
-            imagem.className = "projeto-imagem";
-
-            imagem.alt = projeto.nome || "Imagem do projeto";
-
-            imagem.loading = "lazy";
-
-            if (projeto.foto && projeto.foto.trim() !== "") {
+                const imagem = document.createElement("img");
 
                 imagem.src = projeto.foto;
+                imagem.alt = `Imagem do projeto ${projeto.nome}`;
+                imagem.className = "projeto-imagem";
+                imagem.loading = "lazy";
 
-                imagem.onerror = () => {
-                    imagem.style.display = "none";
+                imagem.onerror = function () {
+                    this.style.display = "none";
                 };
 
-            } else {
-
-                imagem.style.display = "none";
-
+                card.appendChild(imagem);
             }
 
-
-            // CONTEÚDO
+            // Conteúdo
             const conteudo = document.createElement("div");
-
             conteudo.className = "projeto-conteudo";
 
-
-            // NOME
+            // Nome
             const titulo = document.createElement("h3");
-
             titulo.textContent = projeto.nome || "Projeto sem nome";
 
-
-            // DESCRIÇÃO
+            // Descrição
             const descricao = document.createElement("p");
-
             descricao.textContent =
-                projeto.descricao || "Nenhuma descrição disponível.";
+                projeto.descricao || "Sem descrição disponível.";
 
+            conteudo.appendChild(titulo);
+            conteudo.appendChild(descricao);
 
-            // BOTÃO
-            const botao = document.createElement("a");
+            // Link
+            if (projeto.link) {
 
-            botao.className = "projeto-link";
-
-            if (projeto.link && projeto.link.trim() !== "") {
+                const botao = document.createElement("a");
 
                 try {
 
                     const url = new URL(projeto.link);
 
-                    if (!["http:", "https:"].includes(url.protocol)) {
+                    if (!["https:", "http:"].includes(url.protocol)) {
                         throw new Error("Link inválido");
                     }
 
@@ -132,60 +121,53 @@ async function carregarProjetos() {
                     botao.rel = "noopener noreferrer";
                     botao.textContent = "Ver projeto";
 
-                } catch {
+                    botao.className = "projeto-link";
+
+                } catch (erro) {
 
                     botao.textContent = "Link indisponível";
-                    botao.classList.add("projeto-indisponivel");
-
+                    botao.className = "projeto-indisponivel";
                 }
 
-            } else {
-
-                botao.textContent = "Link indisponível";
-                botao.classList.add("projeto-indisponivel");
+                conteudo.appendChild(botao);
 
             }
 
-
-            // MONTAGEM
-            conteudo.appendChild(titulo);
-            conteudo.appendChild(descricao);
-            conteudo.appendChild(botao);
-
-            card.appendChild(imagem);
             card.appendChild(conteudo);
-
             lista.appendChild(card);
 
         });
 
+        mensagem.textContent = "";
+
     } catch (error) {
 
-        console.error("Erro Supabase:", error);
+        console.error("Erro ao carregar projetos:", error);
 
         lista.innerHTML = `
             <div class="estado-projetos">
-                <h3>Erro ao carregar projetos</h3>
-                <p>${error.message}</p>
-                <button id="recarregar-projetos" type="button">
+                <h3>Não foi possível carregar os projetos.</h3>
+                <p id="erro-detalhado"></p>
+                <button id="recarregar-projetos">
                     Tentar novamente
                 </button>
             </div>
         `;
+
+        document.getElementById("erro-detalhado").textContent =
+            error.message;
 
         contador.textContent = "";
 
         document
             .getElementById("recarregar-projetos")
             .addEventListener("click", carregarProjetos);
-
     }
-
 }
 
 
-// ==========================================
-// INICIALIZAÇÃO
-// ==========================================
+/* =====================================
+   INICIALIZAÇÃO
+===================================== */
 
 carregarProjetos();

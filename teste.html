@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Projetos | Enzo Silva</title>
+
+    <meta name="description"
+        content="Conheça os projetos de Enzo Silva nas áreas de programação, desenvolvimento web e tecnologia.">
+        <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <nav class="menu" aria-label="Navegação principal">
+
+            <a href="index.html" class="logo">
+                ENZO<span>.</span>
+            </a>
+
+            <ul class="menu-links">
+                <li><a href="index.html">Início</a></li>
+                <li><a href="quemsoueu.html">Quem sou eu</a></li>
+                <li>
+                    <a href="teste.html" aria-current="page">Portfólio</a>
+                </li>
+                <li><a href="teste.html">contato</a></li>
+            </ul>
+
+            <a href="login.html" class="login-link">
+                Entrar
+            </a>
+
+        </nav>
+    </header>
+
+    <main>
+
+        <section class="pagina-intro">
+            <span class="destaque">MEU TRABALHO</span>
+
+            <h1>Meus projetos<span>.</span></h1>
+
+            <p>
+                Ideias transformadas em projetos.
+                Conheça alguns dos trabalhos que desenvolvi
+                durante minha jornada na tecnologia.
+            </p>
+        </section>
+
+        <section class="projetos-section">
+
+            <div class="projetos-cabecalho">
+                <div>
+                    <span class="destaque">PORTFÓLIO</span>
+                    <h2>Projetos desenvolvidos</h2>
+                </div>
+
+                <span id="contador-projetos">
+                    Carregando...
+                </span>
+            </div>
+
+            <div id="lista-projetos">
+                <p>Carregando projetos...</p>
+            </div>
+
+            <p id="mensagem-projetos" role="status"></p>
+
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Enzo Silva. Todos os direitos reservados.</p>
+
+        <div class="footer-links">
+            <a href="contato.html">Contato</a>
+            <a href="index.html">Início</a>
+        </div>
+    </footer>
+
+    <!-- Biblioteca Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Seu JavaScript -->
+    <script src="portifolio.js"></script>
+
+</body>
+</html>
