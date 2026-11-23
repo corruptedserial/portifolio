@@ -1,1 +1,96 @@
+// ==========================================
+// CONFIGURAÇÃO SUPABASE
+// ==========================================
+const SUPABASE_URL = "https://zivdjnfypxjogmwmzfxl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_0jUu47RgkVa2OyeAUREF2w_gY2yHPyr";
 
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+// ==========================================
+// ELEMENTOS DA PÁGINA
+// ==========================================
+const formContato = document.getElementById("form-contato");
+const inputNome = document.getElementById("nome-contato");
+const inputEmail = document.getElementById("email-contato");
+const inputTelefone = document.getElementById("telefone-contato");
+const inputMensagem = document.getElementById("mensagem-contato");
+const statusEl = document.getElementById("mensagem-contato-status");
+const btnEnviar = document.getElementById("btn-enviar-lead");
+const btnIrFormulario = document.getElementById("btn-ir-formulario");
+
+// ==========================================
+// ROLAGEM / FOCO PARA MANDAR MENSAGEM
+// ==========================================
+if (btnIrFormulario && inputNome) {
+    btnIrFormulario.addEventListener("click", () => {
+        inputNome.scrollIntoView({ behavior: "smooth", block: "center" });
+        inputNome.focus();
+    });
+}
+
+// ==========================================
+// ENVIAR MENSAGEM PARA A TABELA "leads"
+// ==========================================
+if (formContato) {
+    formContato.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const nome = inputNome.value.trim();
+        const email = inputEmail.value.trim();
+        const telefone = inputTelefone.value.trim();
+        const mensagem = inputMensagem.value.trim();
+
+        if (!nome || !email || !mensagem) {
+            if (statusEl) {
+                statusEl.textContent = "Preencha nome, e-mail e mensagem.";
+            }
+            return;
+        }
+
+        if (btnEnviar) {
+            btnEnviar.disabled = true;
+            btnEnviar.textContent = "Enviando...";
+        }
+        if (statusEl) {
+            statusEl.textContent = "Enviando sua mensagem...";
+        }
+
+        try {
+            const payload = {
+                nome,
+                email,
+                telefone: telefone || null,
+                mensagem
+            };
+
+            const { data, error } = await db
+                .from("leads")
+                .insert([payload])
+                .select();
+
+            if (error) {
+                throw error;
+            }
+
+            console.log("Lead salvo com sucesso:", data);
+
+            formContato.reset();
+            if (statusEl) {
+                statusEl.textContent = "Mensagem enviada com sucesso! Obrigado pelo contato.";
+            }
+        } catch (err) {
+            console.error("Erro ao enviar para leads:", err);
+            if (statusEl) {
+                statusEl.textContent = `Erro ao enviar mensagem: ${err.message || "tente novamente."}`;
+            }
+        } finally {
+            if (btnEnviar) {
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = "Enviar mensagem";
+            }
+        }
+    });
+}
