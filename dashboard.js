@@ -22,8 +22,10 @@ if (!Number.isSafeInteger(usuarioId) || usuarioId <= 0) {
     window.location.replace("login.html");
 }
 
-document.getElementById("nome-admin").textContent =
-    usuarioNome || "Administrador";
+const nomeAdminEl = document.getElementById("nome-admin");
+if (nomeAdminEl) {
+    nomeAdminEl.textContent = usuarioNome || "Administrador";
+}
 
 // ======================================
 // ELEMENTOS DO HTML
@@ -40,61 +42,64 @@ const btnAtualizarLeads = document.getElementById("btn-atualizar-leads");
 // CADASTRAR PROJETO
 // ======================================
 
-formulario.addEventListener("submit", async (event) => {
-    event.preventDefault();
+if (formulario) {
+    formulario.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-    const nome = document.getElementById("nome-projeto").value.trim();
-    const descricao = document.getElementById("descricao-projeto").value.trim();
-    const link = document.getElementById("link-projeto").value.trim();
-    const foto = document.getElementById("foto-projeto").value.trim();
+        const nome = document.getElementById("nome-projeto").value.trim();
+        const descricao = document.getElementById("descricao-projeto").value.trim();
+        const link = document.getElementById("link-projeto").value.trim();
+        const foto = document.getElementById("foto-projeto").value.trim();
 
-    if (!nome || !descricao) {
-        mensagem.textContent = "Preencha os campos obrigatórios.";
-        return;
-    }
+        if (!nome || !descricao) {
+            mensagem.textContent = "Preencha os campos obrigatórios.";
+            return;
+        }
 
-    botaoCadastrar.disabled = true;
-    botaoCadastrar.textContent = "Cadastrando...";
+        botaoCadastrar.disabled = true;
+        botaoCadastrar.textContent = "Cadastrando...";
 
-    try {
-        const { error } = await supabaseClient
-            .from("projetos")
-            .insert([
-                {
-                    usuario_id: usuarioId,
-                    nome: nome,
-                    descricao: descricao,
-                    link: link || null,
-                    foto: foto || null
-                }
-            ]);
+        try {
+            const { error } = await supabaseClient
+                .from("projetos")
+                .insert([
+                    {
+                        usuario_id: usuarioId,
+                        nome: nome,
+                        descricao: descricao,
+                        link: link || null,
+                        foto: foto || null
+                    }
+                ]);
 
-        if (error) throw error;
+            if (error) throw error;
 
-        mensagem.textContent = "Projeto cadastrado com sucesso!";
-        mensagem.style.color = "#16a34a";
+            mensagem.textContent = "Projeto cadastrado com sucesso!";
+            mensagem.style.color = "#16a34a";
 
-        formulario.reset();
+            formulario.reset();
 
-        await carregarProjetos();
+            await carregarProjetos();
 
-    } catch (error) {
-        console.error(error);
+        } catch (error) {
+            console.error(error);
 
-        mensagem.textContent = "Não foi possível cadastrar o projeto.";
-        mensagem.style.color = "#dc2626";
+            mensagem.textContent = "Não foi possível cadastrar o projeto.";
+            mensagem.style.color = "#dc2626";
 
-    } finally {
-        botaoCadastrar.disabled = false;
-        botaoCadastrar.textContent = "Cadastrar projeto";
-    }
-});
+        } finally {
+            botaoCadastrar.disabled = false;
+            botaoCadastrar.textContent = "Cadastrar projeto";
+        }
+    });
+}
 
 // ======================================
 // CARREGAR PROJETOS
 // ======================================
 
 async function carregarProjetos() {
+    if (!listaProjetos) return;
 
     listaProjetos.replaceChildren();
 
@@ -310,19 +315,40 @@ function criarCardLead(lead) {
     acoes.style.flexWrap = "wrap";
 
     if (lead.email) {
-        const responder = document.createElement("a");
+        const responderEmail = document.createElement("a");
         const assunto = encodeURIComponent(`Resposta ao seu contato — ${lead.nome || "Portfólio"}`);
         const corpo = encodeURIComponent(
             `Olá ${lead.nome || ""},\n\nObrigado pela mensagem enviada pelo meu site!\n\n--- Sua mensagem ---\n${lead.mensagem || ""}\n\n`
         );
 
-        responder.href = `mailto:${encodeURIComponent(lead.email)}?subject=${assunto}&body=${corpo}`;
-        responder.textContent = "Responder";
-        responder.className = "btn-secundario";
-        responder.style.textDecoration = "none";
-        responder.style.display = "inline-block";
+        responderEmail.href = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(lead.email)}&su=${assunto}&body=${corpo}`;
+        responderEmail.target = "_blank";
+        responderEmail.rel = "noopener noreferrer";
+        responderEmail.textContent = "Responder por E-mail";
+        responderEmail.className = "btn-secundario";
+        responderEmail.style.textDecoration = "none";
+        responderEmail.style.display = "inline-block";
 
-        acoes.appendChild(responder);
+        acoes.appendChild(responderEmail);
+    }
+
+    if (lead.telefone) {
+        const apenasNumeros = String(lead.telefone).replace(/\D/g, "");
+        if (apenasNumeros.length >= 10) {
+            const numeroComDDI = apenasNumeros.startsWith("55") ? apenasNumeros : `55${apenasNumeros}`;
+            const textoZap = encodeURIComponent(`Olá ${lead.nome || ""}, vi sua mensagem no meu site!`);
+
+            const responderZap = document.createElement("a");
+            responderZap.href = `https://wa.me/${numeroComDDI}?text=${textoZap}`;
+            responderZap.target = "_blank";
+            responderZap.rel = "noopener noreferrer";
+            responderZap.textContent = "Responder no WhatsApp";
+            responderZap.className = "btn-secundario";
+            responderZap.style.textDecoration = "none";
+            responderZap.style.display = "inline-block";
+
+            acoes.appendChild(responderZap);
+        }
     }
 
     const excluir = document.createElement("button");
@@ -368,13 +394,14 @@ if (btnAtualizarLeads) {
 // SAIR DO DASHBOARD
 // ======================================
 
-document.getElementById("btn-sair").addEventListener("click", () => {
-
-    sessionStorage.removeItem("usuario_id");
-    sessionStorage.removeItem("usuario_nome");
-
-    window.location.replace("login.html");
-});
+const btnSair = document.getElementById("btn-sair");
+if (btnSair) {
+    btnSair.addEventListener("click", () => {
+        sessionStorage.removeItem("usuario_id");
+        sessionStorage.removeItem("usuario_nome");
+        window.location.replace("login.html");
+    });
+}
 
 // ======================================
 // INICIALIZAÇÃO
