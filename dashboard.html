@@ -11,6 +11,69 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
+        .editar-btn {
+    background: #d97706;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+    margin-right: 8px;
+}
+
+.editar-btn:hover {
+    background: #b45309;
+}
+
+.modal-edicao-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 999;
+}
+
+.modal-edicao-backdrop.aberto {
+    display: flex;
+}
+
+.modal-edicao-box {
+    background: var(--card-bg, #ffffff);
+    color: inherit;
+    width: 100%;
+    max-width: 540px;
+    padding: 28px;
+    border-radius: 14px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+}
+
+.modal-edicao-box input,
+.modal-edicao-box textarea {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font: inherit;
+}
+
+.modal-edicao-box textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.modal-edicao-acoes {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
         .dash-container {
             max-width: 1100px;
             margin: 60px auto;
@@ -26,7 +89,9 @@
             flex-wrap: wrap;
         }
 
-        .dash-form {
+        .dash-form,
+        .perfil-section,
+        .leads-section {
             background: var(--card-bg, #f5f5f5);
             padding: 30px;
             border-radius: 15px;
@@ -34,7 +99,9 @@
         }
 
         .dash-form input,
-        .dash-form textarea {
+        .dash-form textarea,
+        .perfil-controles input,
+        .perfil-controles select {
             display: block;
             width: 100%;
             padding: 13px;
@@ -76,6 +143,89 @@
             color: white;
         }
 
+        /* FOTO DE PERFIL, FORMATOS E MOVIMENTOS */
+        .perfil-box {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .perfil-preview-area {
+            min-width: 180px;
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .foto-perfil-img {
+            object-fit: cover;
+            border: 3px solid #2563eb;
+            background: #1e293b;
+            transition: border-radius 0.2s ease, width 0.2s ease, height 0.2s ease;
+        }
+
+        .formato-quadrado {
+            width: 140px;
+            height: 140px;
+            border-radius: 8px;
+        }
+
+        .formato-retangulo {
+            width: 210px;
+            height: 130px;
+            border-radius: 8px;
+        }
+
+        .formato-circular {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+        }
+
+        .mov-estatica {
+            animation: none;
+        }
+
+        .mov-cima-baixo {
+            animation: moverCimaBaixo 2.2s ease-in-out infinite;
+        }
+
+        .mov-girando {
+            animation: girarFoto 6s linear infinite;
+        }
+
+        @keyframes moverCimaBaixo {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes girarFoto {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .perfil-controles {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .perfil-acoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .projetos-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -113,16 +263,13 @@
             color: white;
         }
 
-        #mensagem-projeto {
+        #mensagem-projeto,
+        #status-perfil {
             margin-top: 15px;
         }
 
-        /* SEÇÃO DE LEADS / MENSAGENS */
         .leads-section {
             margin-top: 55px;
-            background: var(--card-bg, #f5f5f5);
-            padding: 30px;
-            border-radius: 15px;
         }
 
         .leads-topo {
@@ -205,6 +352,57 @@
                     <span class="destaque">PAINEL ADMINISTRATIVO</span>
                     <h1>Olá, <span id="nome-admin">Administrador</span>!</h1>
                     <p>Gerencie os projetos do seu portfólio e leia as mensagens recebidas.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOTO DE PERFIL -->
+        <section class="perfil-section" aria-label="Configuração da foto de perfil">
+            <h2>Foto de perfil</h2>
+            <p>Escolha a foto, o formato e o movimento de exibição.</p>
+
+            <div class="perfil-box">
+                <div class="perfil-preview-area">
+                    <img
+                        id="foto-perfil-preview"
+                        src=""
+                        alt="Foto de perfil"
+                        class="foto-perfil-img formato-circular mov-estatica">
+                </div>
+
+                <div class="perfil-controles">
+                    <button type="button" class="btn-secundario" id="btn-escolher-foto">
+                        Escolher foto de perfil
+                    </button>
+                    <input type="file" id="input-arquivo-foto" accept="image/*" hidden>
+
+                    <label for="url-foto-perfil">Ou cole a URL da foto</label>
+                    <input
+                        type="url"
+                        id="url-foto-perfil"
+                        placeholder="https://exemplo.com/minha-foto.jpg">
+
+                    <label for="formato-foto-perfil">Formato da foto</label>
+                    <select id="formato-foto-perfil">
+                        <option value="quadrado">Quadrado</option>
+                        <option value="retangulo">Retângulo</option>
+                        <option value="circular" selected>Circular</option>
+                    </select>
+
+                    <label for="movimento-foto-perfil">Movimento da foto</label>
+                    <select id="movimento-foto-perfil">
+                        <option value="estatica" selected>Estática</option>
+                        <option value="cima-baixo">Mover para cima e para baixo</option>
+                        <option value="girando">Girando</option>
+                    </select>
+
+                    <div class="perfil-acoes">
+                        <button type="button" class="btn-secundario" id="btn-salvar-perfil">
+                            Salvar foto de perfil
+                        </button>
+                    </div>
+
+                    <p id="status-perfil" role="status" aria-live="polite"></p>
                 </div>
             </div>
         </section>

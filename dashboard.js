@@ -38,6 +38,305 @@ const botaoCadastrar = document.getElementById("btn-cadastrar");
 const listaLeads = document.getElementById("lista-leads");
 const btnAtualizarLeads = document.getElementById("btn-atualizar-leads");
 
+// Elementos da foto de perfil
+const previewFotoPerfil = document.getElementById("foto-perfil-preview");
+const btnEscolherFoto = document.getElementById("btn-escolher-foto");
+const inputArquivoFoto = document.getElementById("input-arquivo-foto");
+const inputUrlFotoPerfil = document.getElementById("url-foto-perfil");
+const selectFormatoFoto = document.getElementById("formato-foto-perfil");
+const selectMovimentoFoto = document.getElementById("movimento-foto-perfil");
+const btnSalvarPerfil = document.getElementById("btn-salvar-perfil");
+const statusPerfil = document.getElementById("status-perfil");
+
+// ======================================
+// MODAL DE EDIÇÃO DE PROJETO
+// ======================================
+
+let projetoEmEdicaoId = null;
+let modalEdicao = null;
+let formEdicao = null;
+let editNomeInput = null;
+let editDescricaoInput = null;
+let editLinkInput = null;
+let editFotoInput = null;
+let btnSalvarEdicao = null;
+let btnCancelarEdicao = null;
+let statusEdicao = null;
+
+function criarModalEdicao() {
+    if (document.getElementById("modal-editar-projeto")) return;
+
+    modalEdicao = document.createElement("div");
+    modalEdicao.id = "modal-editar-projeto";
+    modalEdicao.className = "modal-edicao-backdrop";
+    modalEdicao.setAttribute("role", "dialog");
+    modalEdicao.setAttribute("aria-modal", "true");
+    modalEdicao.setAttribute("aria-labelledby", "titulo-modal-edicao");
+
+    modalEdicao.innerHTML = `
+        <div class="modal-edicao-box">
+            <h2 id="titulo-modal-edicao">Editar projeto</h2>
+            <form id="form-editar-projeto">
+                <label for="edit-nome-projeto">Nome do projeto</label>
+                <input type="text" id="edit-nome-projeto" required maxlength="100">
+
+                <label for="edit-descricao-projeto">Descrição</label>
+                <textarea id="edit-descricao-projeto" required maxlength="1000"></textarea>
+
+                <label for="edit-link-projeto">Link do projeto</label>
+                <input type="url" id="edit-link-projeto" placeholder="https://exemplo.com">
+
+                <label for="edit-foto-projeto">Foto do projeto (URL)</label>
+                <input type="url" id="edit-foto-projeto" placeholder="https://exemplo.com/imagem.jpg">
+
+                <div class="modal-edicao-acoes">
+                    <button type="button" class="btn-secundario" id="btn-cancelar-edicao">Cancelar</button>
+                    <button type="submit" class="btn-secundario" id="btn-salvar-edicao" style="background:#2563eb;">Salvar alterações</button>
+                </div>
+
+                <p id="status-edicao" role="status" aria-live="polite" style="margin-top:12px;"></p>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(modalEdicao);
+
+    formEdicao = document.getElementById("form-editar-projeto");
+    editNomeInput = document.getElementById("edit-nome-projeto");
+    editDescricaoInput = document.getElementById("edit-descricao-projeto");
+    editLinkInput = document.getElementById("edit-link-projeto");
+    editFotoInput = document.getElementById("edit-foto-projeto");
+    btnSalvarEdicao = document.getElementById("btn-salvar-edicao");
+    btnCancelarEdicao = document.getElementById("btn-cancelar-edicao");
+    statusEdicao = document.getElementById("status-edicao");
+
+    btnCancelarEdicao.addEventListener("click", fecharModalEdicao);
+
+    modalEdicao.addEventListener("click", (e) => {
+        if (e.target === modalEdicao) {
+            fecharModalEdicao();
+        }
+    });
+
+    formEdicao.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!projetoEmEdicaoId) return;
+
+        const nome = editNomeInput.value.trim();
+        const descricao = editDescricaoInput.value.trim();
+        const link = editLinkInput.value.trim();
+        const foto = editFotoInput.value.trim();
+
+        if (!nome || !descricao) {
+            statusEdicao.textContent = "Preencha nome e descrição.";
+            statusEdicao.style.color = "#dc2626";
+            return;
+        }
+
+        btnSalvarEdicao.disabled = true;
+        btnSalvarEdicao.textContent = "Salvando...";
+        statusEdicao.textContent = "";
+
+        try {
+            const { error } = await supabaseClient
+                .from("projetos")
+                .update({
+                    nome,
+                    descricao,
+                    link: link || null,
+                    foto: foto || null
+                })
+                .eq("id", projetoEmEdicaoId)
+                .eq("usuario_id", usuarioId);
+
+            if (error) throw error;
+
+            mensagem.textContent = "Projeto atualizado com sucesso!";
+            mensagem.style.color = "#16a34a";
+
+            fecharModalEdicao();
+            await carregarProjetos();
+        } catch (err) {
+            console.error("Erro ao atualizar projeto:", err);
+            statusEdicao.textContent = "Não foi possível salvar as alterações.";
+            statusEdicao.style.color = "#dc2626";
+        } finally {
+            btnSalvarEdicao.disabled = false;
+            btnSalvarEdicao.textContent = "Salvar alterações";
+        }
+    });
+}
+
+function abrirModalEdicao(projeto) {
+    criarModalEdicao();
+    projetoEmEdicaoId = projeto.id;
+
+    editNomeInput.value = projeto.nome || "";
+    editDescricaoInput.value = projeto.descricao || "";
+    editLinkInput.value = projeto.link || "";
+    editFotoInput.value = projeto.foto || "";
+    statusEdicao.textContent = "";
+
+    modalEdicao.classList.add("aberto");
+    editNomeInput.focus();
+}
+
+function fecharModalEdicao() {
+    if (!modalEdicao) return;
+    modalEdicao.classList.remove("aberto");
+    projetoEmEdicaoId = null;
+}
+
+// ======================================
+// FOTO DE PERFIL, FORMATO E MOVIMENTO (SUPABASE)
+// ======================================
+
+function aplicarEstiloFotoPerfil(src, formato, movimento) {
+    if (!previewFotoPerfil) return;
+
+    const formatoValido = ["quadrado", "retangulo", "circular"].includes(formato)
+        ? formato
+        : "circular";
+
+    const movimentoValido = ["estatica", "cima-baixo", "girando"].includes(movimento)
+        ? movimento
+        : "estatica";
+
+    previewFotoPerfil.className = `foto-perfil-img formato-${formatoValido} mov-${movimentoValido}`;
+
+    if (src) {
+        previewFotoPerfil.src = src;
+        previewFotoPerfil.style.display = "block";
+    } else {
+        previewFotoPerfil.removeAttribute("src");
+        previewFotoPerfil.style.display = "none";
+    }
+}
+
+async function carregarConfigFotoPerfil() {
+    try {
+        const { data, error } = await supabaseClient
+            .from("usuario")
+            .select("foto_perfil, foto_formato, foto_movimento")
+            .eq("id", usuarioId)
+            .single();
+
+        if (error) throw error;
+        if (!data) return;
+
+        const src = data.foto_perfil || "";
+        const formato = data.foto_formato || "circular";
+        const movimento = data.foto_movimento || "estatica";
+
+        if (src && !src.startsWith("data:image/") && inputUrlFotoPerfil) {
+            inputUrlFotoPerfil.value = src;
+        }
+        if (selectFormatoFoto) selectFormatoFoto.value = formato;
+        if (selectMovimentoFoto) selectMovimentoFoto.value = movimento;
+
+        aplicarEstiloFotoPerfil(src, formato, movimento);
+    } catch (err) {
+        console.error("Erro ao carregar foto de perfil do banco:", err);
+    }
+}
+
+if (btnEscolherFoto && inputArquivoFoto) {
+    btnEscolherFoto.addEventListener("click", () => {
+        inputArquivoFoto.click();
+    });
+
+    inputArquivoFoto.addEventListener("change", () => {
+        const arquivo = inputArquivoFoto.files && inputArquivoFoto.files[0];
+        if (!arquivo) return;
+
+        const leitor = new FileReader();
+        leitor.onload = () => {
+            const dataUrl = String(leitor.result || "");
+            if (inputUrlFotoPerfil) inputUrlFotoPerfil.value = "";
+            aplicarEstiloFotoPerfil(
+                dataUrl,
+                selectFormatoFoto ? selectFormatoFoto.value : "circular",
+                selectMovimentoFoto ? selectMovimentoFoto.value : "estatica"
+            );
+        };
+        leitor.readAsDataURL(arquivo);
+    });
+}
+
+if (inputUrlFotoPerfil) {
+    inputUrlFotoPerfil.addEventListener("input", () => {
+        aplicarEstiloFotoPerfil(
+            inputUrlFotoPerfil.value.trim(),
+            selectFormatoFoto ? selectFormatoFoto.value : "circular",
+            selectMovimentoFoto ? selectMovimentoFoto.value : "estatica"
+        );
+    });
+}
+
+if (selectFormatoFoto) {
+    selectFormatoFoto.addEventListener("change", () => {
+        aplicarEstiloFotoPerfil(
+            previewFotoPerfil ? previewFotoPerfil.getAttribute("src") || "" : "",
+            selectFormatoFoto.value,
+            selectMovimentoFoto ? selectMovimentoFoto.value : "estatica"
+        );
+    });
+}
+
+if (selectMovimentoFoto) {
+    selectMovimentoFoto.addEventListener("change", () => {
+        aplicarEstiloFotoPerfil(
+            previewFotoPerfil ? previewFotoPerfil.getAttribute("src") || "" : "",
+            selectFormatoFoto ? selectFormatoFoto.value : "circular",
+            selectMovimentoFoto.value
+        );
+    });
+}
+
+if (btnSalvarPerfil) {
+    btnSalvarPerfil.addEventListener("click", async () => {
+        const srcAtual =
+            (inputUrlFotoPerfil && inputUrlFotoPerfil.value.trim()) ||
+            (previewFotoPerfil && previewFotoPerfil.getAttribute("src")) ||
+            "";
+        const formatoAtual = selectFormatoFoto ? selectFormatoFoto.value : "circular";
+        const movimentoAtual = selectMovimentoFoto ? selectMovimentoFoto.value : "estatica";
+
+        aplicarEstiloFotoPerfil(srcAtual, formatoAtual, movimentoAtual);
+
+        btnSalvarPerfil.disabled = true;
+        btnSalvarPerfil.textContent = "Salvando...";
+        if (statusPerfil) statusPerfil.textContent = "";
+
+        try {
+            const { error } = await supabaseClient
+                .from("usuario")
+                .update({
+                    foto_perfil: srcAtual || null,
+                    foto_formato: formatoAtual,
+                    foto_movimento: movimentoAtual
+                })
+                .eq("id", usuarioId);
+
+            if (error) throw error;
+
+            if (statusPerfil) {
+                statusPerfil.textContent = "Foto de perfil salva no banco de dados!";
+                statusPerfil.style.color = "#16a34a";
+            }
+        } catch (err) {
+            console.error("Erro ao salvar foto de perfil no Supabase:", err);
+            if (statusPerfil) {
+                statusPerfil.textContent = `Erro ao salvar no banco: ${err.message || "tente novamente."}`;
+                statusPerfil.style.color = "#dc2626";
+            }
+        } finally {
+            btnSalvarPerfil.disabled = false;
+            btnSalvarPerfil.textContent = "Salvar foto de perfil";
+        }
+    });
+}
+
 // ======================================
 // CADASTRAR PROJETO
 // ======================================
@@ -186,6 +485,14 @@ function criarCardProjeto(projeto) {
         info.appendChild(link);
     }
 
+    const editar = document.createElement("button");
+    editar.type = "button";
+    editar.className = "editar-btn";
+    editar.textContent = "Editar";
+    editar.addEventListener("click", () => {
+        abrirModalEdicao(projeto);
+    });
+
     const excluir = document.createElement("button");
 
     excluir.type = "button";
@@ -196,6 +503,7 @@ function criarCardProjeto(projeto) {
         excluirProjeto(projeto.id);
     });
 
+    info.appendChild(editar);
     info.appendChild(excluir);
     card.appendChild(info);
 
@@ -407,5 +715,6 @@ if (btnSair) {
 // INICIALIZAÇÃO
 // ======================================
 
+carregarConfigFotoPerfil();
 carregarProjetos();
 carregarLeads();
