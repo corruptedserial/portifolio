@@ -1,0 +1,89 @@
+// ==========================================
+// CONFIGURAÇÃO SUPABASE
+// ==========================================
+const SUPABASE_URL = "https://zivdjnfypxjogmwmzfxl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_0jUu47RgkVa2OyeAUREF2w_gY2yHPyr";
+
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+// ==========================================
+// ELEMENTOS DO FORMULÁRIO
+// ==========================================
+const formContato = document.getElementById("form-contato");
+const inputNome = document.getElementById("nome-contato");
+const inputEmail = document.getElementById("email-contato");
+const inputTelefone = document.getElementById("telefone-contato");
+const inputMensagem = document.getElementById("mensagem-contato");
+const statusContato = document.getElementById("mensagem-contato-status");
+const btnFocarMensagem = document.getElementById("focar-mensagem");
+
+// Foca no campo de mensagem ao clicar em "Mandar mensagem pelo site"
+if (btnFocarMensagem && inputMensagem) {
+    btnFocarMensagem.addEventListener("click", () => {
+        inputMensagem.scrollIntoView({ behavior: "smooth", block: "center" });
+        inputMensagem.focus();
+    });
+}
+
+// Envia os dados preenchidos no formulário para a tabela "leads"
+if (formContato) {
+    formContato.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const botaoSubmit = formContato.querySelector('button[type="submit"]');
+        const nome = inputNome.value.trim();
+        const email = inputEmail.value.trim();
+        const telefone = inputTelefone.value.trim();
+        const mensagem = inputMensagem.value.trim();
+
+        if (!nome || !email || !mensagem) {
+            if (statusContato) {
+                statusContato.textContent = "Preencha nome, e-mail e mensagem.";
+            }
+            return;
+        }
+
+        if (botaoSubmit) {
+            botaoSubmit.disabled = true;
+            botaoSubmit.textContent = "Enviando...";
+        }
+        if (statusContato) {
+            statusContato.textContent = "Enviando mensagem...";
+        }
+
+        try {
+            const { error } = await db
+                .from("leads")
+                .insert([
+                    {
+                        nome,
+                        email,
+                        telefone: telefone || null,
+                        mensagem
+                    }
+                ]);
+
+            if (error) {
+                throw error;
+            }
+
+            formContato.reset();
+            if (statusContato) {
+                statusContato.textContent = "Mensagem enviada com sucesso!";
+            }
+        } catch (err) {
+            console.error("Erro ao salvar lead:", err);
+            if (statusContato) {
+                statusContato.textContent = `Erro ao enviar: ${err.message || "tente novamente."}`;
+            }
+        } finally {
+            if (botaoSubmit) {
+                botaoSubmit.disabled = false;
+                botaoSubmit.textContent = "Enviar mensagem";
+            }
+        }
+    });
+}
