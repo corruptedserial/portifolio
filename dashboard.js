@@ -1,4 +1,3 @@
-
 // ======================================
 // CONFIGURAÇÃO DO SUPABASE
 // ======================================
@@ -34,6 +33,8 @@ const formulario = document.getElementById("form-projeto");
 const listaProjetos = document.getElementById("lista-projetos");
 const mensagem = document.getElementById("mensagem-projeto");
 const botaoCadastrar = document.getElementById("btn-cadastrar");
+const listaLeads = document.getElementById("lista-leads");
+const btnAtualizarLeads = document.getElementById("btn-atualizar-leads");
 
 // ======================================
 // CADASTRAR PROJETO
@@ -231,6 +232,139 @@ async function excluirProjeto(id) {
 }
 
 // ======================================
+// CARREGAR MENSAGENS (TABELA LEADS)
+// ======================================
+
+async function carregarLeads() {
+    if (!listaLeads) return;
+
+    listaLeads.replaceChildren();
+    const carregando = document.createElement("p");
+    carregando.textContent = "Carregando mensagens...";
+    listaLeads.appendChild(carregando);
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("leads")
+            .select("id, nome, email, telefone, mensagem, created_at")
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        listaLeads.replaceChildren();
+
+        if (!data || data.length === 0) {
+            const vazio = document.createElement("p");
+            vazio.textContent = "Nenhuma mensagem recebida até o momento.";
+            listaLeads.appendChild(vazio);
+            return;
+        }
+
+        data.forEach((lead) => {
+            criarCardLead(lead);
+        });
+
+    } catch (error) {
+        console.error("Erro ao carregar leads:", error);
+        listaLeads.replaceChildren();
+        const erro = document.createElement("p");
+        erro.textContent = "Erro ao carregar as mensagens.";
+        listaLeads.appendChild(erro);
+    }
+}
+
+function criarCardLead(lead) {
+    const card = document.createElement("article");
+    card.className = "lead-card";
+
+    const cabecalho = document.createElement("div");
+    cabecalho.className = "lead-cabecalho";
+
+    const nome = document.createElement("h3");
+    nome.textContent = lead.nome || "Sem nome";
+
+    const dataFormatada = lead.created_at
+        ? new Date(lead.created_at).toLocaleString("pt-BR")
+        : "";
+
+    const dataEl = document.createElement("span");
+    dataEl.textContent = dataFormatada;
+
+    cabecalho.appendChild(nome);
+    cabecalho.appendChild(dataEl);
+
+    const meta = document.createElement("p");
+    meta.className = "lead-meta";
+    const partesMeta = [];
+    if (lead.email) partesMeta.push(`E-mail: ${lead.email}`);
+    if (lead.telefone) partesMeta.push(`Telefone: ${lead.telefone}`);
+    meta.textContent = partesMeta.join(" | ");
+
+    const texto = document.createElement("p");
+    texto.className = "lead-texto";
+    texto.textContent = lead.mensagem || "";
+
+    const acoes = document.createElement("div");
+    acoes.style.display = "flex";
+    acoes.style.gap = "10px";
+    acoes.style.flexWrap = "wrap";
+
+    if (lead.email) {
+        const responder = document.createElement("a");
+        const assunto = encodeURIComponent(`Resposta ao seu contato — ${lead.nome || "Portfólio"}`);
+        const corpo = encodeURIComponent(
+            `Olá ${lead.nome || ""},\n\nObrigado pela mensagem enviada pelo meu site!\n\n--- Sua mensagem ---\n${lead.mensagem || ""}\n\n`
+        );
+
+        responder.href = `mailto:${encodeURIComponent(lead.email)}?subject=${assunto}&body=${corpo}`;
+        responder.textContent = "Responder";
+        responder.className = "btn-secundario";
+        responder.style.textDecoration = "none";
+        responder.style.display = "inline-block";
+
+        acoes.appendChild(responder);
+    }
+
+    const excluir = document.createElement("button");
+    excluir.type = "button";
+    excluir.className = "excluir-btn";
+    excluir.textContent = "Excluir mensagem";
+    excluir.addEventListener("click", () => excluirLead(lead.id));
+
+    acoes.appendChild(excluir);
+
+    card.appendChild(cabecalho);
+    card.appendChild(meta);
+    card.appendChild(texto);
+    card.appendChild(acoes);
+
+    listaLeads.appendChild(card);
+}
+
+async function excluirLead(id) {
+    const confirmar = confirm("Tem certeza que deseja excluir esta mensagem?");
+    if (!confirmar) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from("leads")
+            .delete()
+            .eq("id", id);
+
+        if (error) throw error;
+
+        await carregarLeads();
+    } catch (error) {
+        console.error("Erro ao excluir lead:", error);
+        alert("Erro ao excluir a mensagem.");
+    }
+}
+
+if (btnAtualizarLeads) {
+    btnAtualizarLeads.addEventListener("click", carregarLeads);
+}
+
+// ======================================
 // SAIR DO DASHBOARD
 // ======================================
 
@@ -247,3 +381,4 @@ document.getElementById("btn-sair").addEventListener("click", () => {
 // ======================================
 
 carregarProjetos();
+carregarLeads();
