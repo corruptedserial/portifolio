@@ -10,86 +10,79 @@ const db = window.supabase.createClient(
 );
 
 // ==========================================
-// ELEMENTOS DA PÁGINA
+// ELEMENTOS DO FORMULÁRIO
 // ==========================================
 const formContato = document.getElementById("form-contato");
 const inputNome = document.getElementById("nome-contato");
 const inputEmail = document.getElementById("email-contato");
 const inputTelefone = document.getElementById("telefone-contato");
 const inputMensagem = document.getElementById("mensagem-contato");
-const statusEl = document.getElementById("mensagem-contato-status");
-const btnEnviar = document.getElementById("btn-enviar-lead");
-const btnIrFormulario = document.getElementById("btn-ir-formulario");
+const statusContato = document.getElementById("mensagem-contato-status");
+const btnFocarMensagem = document.getElementById("focar-mensagem");
 
-// ==========================================
-// ROLAGEM / FOCO PARA MANDAR MENSAGEM
-// ==========================================
-if (btnIrFormulario && inputNome) {
-    btnIrFormulario.addEventListener("click", () => {
-        inputNome.scrollIntoView({ behavior: "smooth", block: "center" });
-        inputNome.focus();
+// Foca no campo de mensagem ao clicar em "Mandar mensagem pelo site"
+if (btnFocarMensagem && inputMensagem) {
+    btnFocarMensagem.addEventListener("click", () => {
+        inputMensagem.scrollIntoView({ behavior: "smooth", block: "center" });
+        inputMensagem.focus();
     });
 }
 
-// ==========================================
-// ENVIAR MENSAGEM PARA A TABELA "leads"
-// ==========================================
+// Envia os dados preenchidos no formulário para a tabela "leads"
 if (formContato) {
     formContato.addEventListener("submit", async (event) => {
         event.preventDefault();
 
+        const botaoSubmit = formContato.querySelector('button[type="submit"]');
         const nome = inputNome.value.trim();
         const email = inputEmail.value.trim();
         const telefone = inputTelefone.value.trim();
         const mensagem = inputMensagem.value.trim();
 
         if (!nome || !email || !mensagem) {
-            if (statusEl) {
-                statusEl.textContent = "Preencha nome, e-mail e mensagem.";
+            if (statusContato) {
+                statusContato.textContent = "Preencha nome, e-mail e mensagem.";
             }
             return;
         }
 
-        if (btnEnviar) {
-            btnEnviar.disabled = true;
-            btnEnviar.textContent = "Enviando...";
+        if (botaoSubmit) {
+            botaoSubmit.disabled = true;
+            botaoSubmit.textContent = "Enviando...";
         }
-        if (statusEl) {
-            statusEl.textContent = "Enviando sua mensagem...";
+        if (statusContato) {
+            statusContato.textContent = "Enviando mensagem...";
         }
 
         try {
-            const payload = {
-                nome,
-                email,
-                telefone: telefone || null,
-                mensagem
-            };
-
-            const { data, error } = await db
+            const { error } = await db
                 .from("leads")
-                .insert([payload])
-                .select();
+                .insert([
+                    {
+                        nome,
+                        email,
+                        telefone: telefone || null,
+                        mensagem
+                    }
+                ]);
 
             if (error) {
                 throw error;
             }
 
-            console.log("Lead salvo com sucesso:", data);
-
             formContato.reset();
-            if (statusEl) {
-                statusEl.textContent = "Mensagem enviada com sucesso! Obrigado pelo contato.";
+            if (statusContato) {
+                statusContato.textContent = "Mensagem enviada com sucesso!";
             }
         } catch (err) {
-            console.error("Erro ao enviar para leads:", err);
-            if (statusEl) {
-                statusEl.textContent = `Erro ao enviar mensagem: ${err.message || "tente novamente."}`;
+            console.error("Erro ao salvar lead:", err);
+            if (statusContato) {
+                statusContato.textContent = `Erro ao enviar: ${err.message || "tente novamente."}`;
             }
         } finally {
-            if (btnEnviar) {
-                btnEnviar.disabled = false;
-                btnEnviar.textContent = "Enviar mensagem";
+            if (botaoSubmit) {
+                botaoSubmit.disabled = false;
+                botaoSubmit.textContent = "Enviar mensagem";
             }
         }
     });
