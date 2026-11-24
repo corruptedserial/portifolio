@@ -12,68 +12,69 @@
 
     <style>
         .editar-btn {
-    background: #d97706;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font: inherit;
-    margin-right: 8px;
-}
+            background: #d97706;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font: inherit;
+            margin-right: 8px;
+        }
 
-.editar-btn:hover {
-    background: #b45309;
-}
+        .editar-btn:hover {
+            background: #b45309;
+        }
 
-.modal-edicao-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.65);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 999;
-}
+        .modal-edicao-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 999;
+        }
 
-.modal-edicao-backdrop.aberto {
-    display: flex;
-}
+        .modal-edicao-backdrop.aberto {
+            display: flex;
+        }
 
-.modal-edicao-box {
-    background: var(--card-bg, #ffffff);
-    color: inherit;
-    width: 100%;
-    max-width: 540px;
-    padding: 28px;
-    border-radius: 14px;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
-}
+        .modal-edicao-box {
+            background: var(--card-bg, #ffffff);
+            color: inherit;
+            width: 100%;
+            max-width: 540px;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+        }
 
-.modal-edicao-box input,
-.modal-edicao-box textarea {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-sizing: border-box;
-    font: inherit;
-}
+        .modal-edicao-box input,
+        .modal-edicao-box textarea {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font: inherit;
+        }
 
-.modal-edicao-box textarea {
-    min-height: 110px;
-    resize: vertical;
-}
+        .modal-edicao-box textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
 
-.modal-edicao-acoes {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-}
+        .modal-edicao-acoes {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
         .dash-container {
             max-width: 1100px;
             margin: 60px auto;
@@ -100,7 +101,7 @@
 
         .dash-form input,
         .dash-form textarea,
-        .perfil-controles input,
+        .perfil-controles input[type="url"],
         .perfil-controles select {
             display: block;
             width: 100%;
@@ -152,8 +153,8 @@
         }
 
         .perfil-preview-area {
-            min-width: 180px;
-            min-height: 160px;
+            min-width: 240px;
+            min-height: 220px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -164,24 +165,25 @@
             object-fit: cover;
             border: 3px solid #2563eb;
             background: #1e293b;
+            max-width: 100%;
             transition: border-radius 0.2s ease, width 0.2s ease, height 0.2s ease;
         }
 
         .formato-quadrado {
-            width: 140px;
-            height: 140px;
+            width: 220px;
+            height: 220px;
             border-radius: 8px;
         }
 
         .formato-retangulo {
-            width: 210px;
-            height: 130px;
+            width: 330px;
+            height: 220px;
             border-radius: 8px;
         }
 
         .formato-circular {
-            width: 140px;
-            height: 140px;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
         }
 
@@ -359,7 +361,7 @@
         <!-- FOTO DE PERFIL -->
         <section class="perfil-section" aria-label="Configuração da foto de perfil">
             <h2>Foto de perfil</h2>
-            <p>Escolha a foto, o formato e o movimento de exibição.</p>
+            <p>Escolha a foto, o formato, o movimento e o tamanho de exibição.</p>
 
             <div class="perfil-box">
                 <div class="perfil-preview-area">
@@ -395,6 +397,20 @@
                         <option value="cima-baixo">Mover para cima e para baixo</option>
                         <option value="girando">Girando</option>
                     </select>
+
+                    <label for="tamanho-foto-perfil">Tamanho da foto (<span id="valor-tamanho-foto">220</span>px)</label>
+                    <div class="perfil-acoes" style="align-items: center; margin: 10px 0 20px;">
+                        <button type="button" class="btn-secundario" id="btn-diminuir-foto" aria-label="Diminuir tamanho da foto">- Diminuir</button>
+                        <input
+                            type="range"
+                            id="tamanho-foto-perfil"
+                            min="100"
+                            max="450"
+                            step="10"
+                            value="220"
+                            style="margin: 0; flex: 1;">
+                        <button type="button" class="btn-secundario" id="btn-aumentar-foto" aria-label="Aumentar tamanho da foto">+ Aumentar</button>
+                    </div>
 
                     <div class="perfil-acoes">
                         <button type="button" class="btn-secundario" id="btn-salvar-perfil">

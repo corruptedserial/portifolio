@@ -45,6 +45,10 @@ const inputArquivoFoto = document.getElementById("input-arquivo-foto");
 const inputUrlFotoPerfil = document.getElementById("url-foto-perfil");
 const selectFormatoFoto = document.getElementById("formato-foto-perfil");
 const selectMovimentoFoto = document.getElementById("movimento-foto-perfil");
+const rangeTamanhoFoto = document.getElementById("tamanho-foto-perfil");
+const valorTamanhoFoto = document.getElementById("valor-tamanho-foto");
+const btnDiminuirFoto = document.getElementById("btn-diminuir-foto");
+const btnAumentarFoto = document.getElementById("btn-aumentar-foto");
 const btnSalvarPerfil = document.getElementById("btn-salvar-perfil");
 const statusPerfil = document.getElementById("status-perfil");
 
@@ -188,10 +192,17 @@ function fecharModalEdicao() {
 }
 
 // ======================================
-// FOTO DE PERFIL, FORMATO E MOVIMENTO (SUPABASE)
+// FOTO DE PERFIL, FORMATO, MOVIMENTO E TAMANHO (SUPABASE)
 // ======================================
 
-function aplicarEstiloFotoPerfil(src, formato, movimento) {
+function normalizarTamanho(tamanho) {
+    const num = Number(tamanho);
+    if (!Number.isFinite(num) || num < 100) return 220;
+    if (num > 450) return 450;
+    return Math.round(num);
+}
+
+function aplicarEstiloFotoPerfil(src, formato, movimento, tamanho) {
     if (!previewFotoPerfil) return;
 
     const formatoValido = ["quadrado", "retangulo", "circular"].includes(formato)
@@ -202,7 +213,24 @@ function aplicarEstiloFotoPerfil(src, formato, movimento) {
         ? movimento
         : "estatica";
 
+    const tamanhoPx = normalizarTamanho(
+        tamanho !== undefined
+            ? tamanho
+            : (rangeTamanhoFoto ? rangeTamanhoFoto.value : 220)
+    );
+
+    if (rangeTamanhoFoto) rangeTamanhoFoto.value = String(tamanhoPx);
+    if (valorTamanhoFoto) valorTamanhoFoto.textContent = String(tamanhoPx);
+
     previewFotoPerfil.className = `foto-perfil-img formato-${formatoValido} mov-${movimentoValido}`;
+
+    if (formatoValido === "retangulo") {
+        previewFotoPerfil.style.width = `${Math.round(tamanhoPx * 1.5)}px`;
+        previewFotoPerfil.style.height = `${tamanhoPx}px`;
+    } else {
+        previewFotoPerfil.style.width = `${tamanhoPx}px`;
+        previewFotoPerfil.style.height = `${tamanhoPx}px`;
+    }
 
     if (src) {
         previewFotoPerfil.src = src;
@@ -217,7 +245,7 @@ async function carregarConfigFotoPerfil() {
     try {
         const { data, error } = await supabaseClient
             .from("usuario")
-            .select("foto_perfil, foto_formato, foto_movimento")
+            .select("foto_perfil, foto_formato, foto_movimento, foto_tamanho")
             .eq("id", usuarioId)
             .single();
 
@@ -227,6 +255,7 @@ async function carregarConfigFotoPerfil() {
         const src = data.foto_perfil || "";
         const formato = data.foto_formato || "circular";
         const movimento = data.foto_movimento || "estatica";
+        const tamanho = normalizarTamanho(data.foto_tamanho);
 
         if (src && !src.startsWith("data:image/") && inputUrlFotoPerfil) {
             inputUrlFotoPerfil.value = src;
@@ -234,7 +263,7 @@ async function carregarConfigFotoPerfil() {
         if (selectFormatoFoto) selectFormatoFoto.value = formato;
         if (selectMovimentoFoto) selectMovimentoFoto.value = movimento;
 
-        aplicarEstiloFotoPerfil(src, formato, movimento);
+        aplicarEstiloFotoPerfil(src, formato, movimento, tamanho);
     } catch (err) {
         console.error("Erro ao carregar foto de perfil do banco:", err);
     }
@@ -256,7 +285,8 @@ if (btnEscolherFoto && inputArquivoFoto) {
             aplicarEstiloFotoPerfil(
                 dataUrl,
                 selectFormatoFoto ? selectFormatoFoto.value : "circular",
-                selectMovimentoFoto ? selectMovimentoFoto.value : "estatica"
+                selectMovimentoFoto ? selectMovimentoFoto.value : "estatica",
+                rangeTamanhoFoto ? rangeTamanhoFoto.value : 220
             );
         };
         leitor.readAsDataURL(arquivo);
@@ -268,7 +298,8 @@ if (inputUrlFotoPerfil) {
         aplicarEstiloFotoPerfil(
             inputUrlFotoPerfil.value.trim(),
             selectFormatoFoto ? selectFormatoFoto.value : "circular",
-            selectMovimentoFoto ? selectMovimentoFoto.value : "estatica"
+            selectMovimentoFoto ? selectMovimentoFoto.value : "estatica",
+            rangeTamanhoFoto ? rangeTamanhoFoto.value : 220
         );
     });
 }
@@ -278,7 +309,8 @@ if (selectFormatoFoto) {
         aplicarEstiloFotoPerfil(
             previewFotoPerfil ? previewFotoPerfil.getAttribute("src") || "" : "",
             selectFormatoFoto.value,
-            selectMovimentoFoto ? selectMovimentoFoto.value : "estatica"
+            selectMovimentoFoto ? selectMovimentoFoto.value : "estatica",
+            rangeTamanhoFoto ? rangeTamanhoFoto.value : 220
         );
     });
 }
@@ -288,7 +320,43 @@ if (selectMovimentoFoto) {
         aplicarEstiloFotoPerfil(
             previewFotoPerfil ? previewFotoPerfil.getAttribute("src") || "" : "",
             selectFormatoFoto ? selectFormatoFoto.value : "circular",
-            selectMovimentoFoto.value
+            selectMovimentoFoto.value,
+            rangeTamanhoFoto ? rangeTamanhoFoto.value : 220
+        );
+    });
+}
+
+if (rangeTamanhoFoto) {
+    rangeTamanhoFoto.addEventListener("input", () => {
+        aplicarEstiloFotoPerfil(
+            previewFotoPerfil ? previewFotoPerfil.getAttribute("src") || "" : "",
+            selectFormatoFoto ? selectFormatoFoto.value : "circular",
+            selectMovimentoFoto ? selectMovimentoFoto.value : "estatica",
+            rangeTamanhoFoto.value
+        );
+    });
+}
+
+if (btnDiminuirFoto) {
+    btnDiminuirFoto.addEventListener("click", () => {
+        const atual = rangeTamanhoFoto ? Number(rangeTamanhoFoto.value) : 220;
+        aplicarEstiloFotoPerfil(
+            previewFotoPerfil ? previewFotoPerfil.getAttribute("src") || "" : "",
+            selectFormatoFoto ? selectFormatoFoto.value : "circular",
+            selectMovimentoFoto ? selectMovimentoFoto.value : "estatica",
+            atual - 20
+        );
+    });
+}
+
+if (btnAumentarFoto) {
+    btnAumentarFoto.addEventListener("click", () => {
+        const atual = rangeTamanhoFoto ? Number(rangeTamanhoFoto.value) : 220;
+        aplicarEstiloFotoPerfil(
+            previewFotoPerfil ? previewFotoPerfil.getAttribute("src") || "" : "",
+            selectFormatoFoto ? selectFormatoFoto.value : "circular",
+            selectMovimentoFoto ? selectMovimentoFoto.value : "estatica",
+            atual + 20
         );
     });
 }
@@ -301,8 +369,9 @@ if (btnSalvarPerfil) {
             "";
         const formatoAtual = selectFormatoFoto ? selectFormatoFoto.value : "circular";
         const movimentoAtual = selectMovimentoFoto ? selectMovimentoFoto.value : "estatica";
+        const tamanhoAtual = normalizarTamanho(rangeTamanhoFoto ? rangeTamanhoFoto.value : 220);
 
-        aplicarEstiloFotoPerfil(srcAtual, formatoAtual, movimentoAtual);
+        aplicarEstiloFotoPerfil(srcAtual, formatoAtual, movimentoAtual, tamanhoAtual);
 
         btnSalvarPerfil.disabled = true;
         btnSalvarPerfil.textContent = "Salvando...";
@@ -314,7 +383,8 @@ if (btnSalvarPerfil) {
                 .update({
                     foto_perfil: srcAtual || null,
                     foto_formato: formatoAtual,
-                    foto_movimento: movimentoAtual
+                    foto_movimento: movimentoAtual,
+                    foto_tamanho: tamanhoAtual
                 })
                 .eq("id", usuarioId);
 

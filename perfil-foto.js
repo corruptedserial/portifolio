@@ -16,24 +16,19 @@
                 object-fit: cover;
                 border: 3px solid #2563eb;
                 background: #1e293b;
+                max-width: 100%;
                 transition: border-radius 0.2s ease, width 0.2s ease, height 0.2s ease;
             }
 
             .perfil-site-img.formato-quadrado {
-                width: 140px;
-                height: 140px;
                 border-radius: 8px;
             }
 
             .perfil-site-img.formato-retangulo {
-                width: 210px;
-                height: 130px;
                 border-radius: 8px;
             }
 
             .perfil-site-img.formato-circular {
-                width: 140px;
-                height: 140px;
                 border-radius: 50%;
             }
 
@@ -81,7 +76,7 @@
 
             const { data, error } = await db
                 .from("usuario")
-                .select("foto_perfil, foto_formato, foto_movimento")
+                .select("foto_perfil, foto_formato, foto_movimento, foto_tamanho")
                 .order("id", { ascending: true })
                 .limit(1)
                 .single();
@@ -101,7 +96,21 @@
                 ? data.foto_movimento
                 : "estatica";
 
+            const numTamanho = Number(data.foto_tamanho);
+            const tamanhoPx = Number.isFinite(numTamanho) && numTamanho >= 100
+                ? Math.min(450, Math.round(numTamanho))
+                : 220;
+
             img.className = `perfil-site-img formato-${formato} mov-${movimento}`;
+
+            if (formato === "retangulo") {
+                img.style.width = `${Math.round(tamanhoPx * 1.5)}px`;
+                img.style.height = `${tamanhoPx}px`;
+            } else {
+                img.style.width = `${tamanhoPx}px`;
+                img.style.height = `${tamanhoPx}px`;
+            }
+
             img.src = data.foto_perfil;
             img.style.display = "block";
             img.onerror = () => {
