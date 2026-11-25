@@ -457,11 +457,76 @@
                     id="foto-projeto"
                     placeholder="https://exemplo.com/imagem.jpg">
 
-                <button type="submit" id="btn-cadastrar">
+                       <button type="submit" id="btn-cadastrar">
                     Cadastrar projeto
                 </button>
 
                 <p id="mensagem-projeto" role="status" aria-live="polite"></p>
+                
+                    <!-- GIF DE FUNDO -->
+        <section class="perfil-section" aria-label="Configuração do GIF de fundo">
+            <h2>GIF de fundo do site</h2>
+            <p>Escolha um GIF animado para o fundo ou retire para voltar ao fundo escuro padrão.</p>
+
+            <div class="perfil-box">
+                <div class="perfil-preview-area" style="flex: 1; min-width: 240px;">
+                    <div
+                        id="gif-fundo-preview"
+                        style="
+                            width: 100%;
+                            max-width: 300px;
+                            height: 170px;
+                            border-radius: 14px;
+                            border: 2px solid #2563eb;
+                            background: radial-gradient(circle at 20% 20%, rgba(0, 240, 255, 0.25), rgba(14, 20, 42, 0.95));
+                            background-size: cover;
+                            background-position: center;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            text-align: center;
+                            padding: 12px;
+                            font-size: 0.9rem;
+                            color: #cbd5e1;
+                        ">
+                        Fundo padrão ativo
+                    </div>
+                </div>
+
+                <div class="perfil-controles">
+                    <button type="button" class="btn-secundario" id="btn-escolher-gif">
+                        Escolher arquivo GIF
+                    </button>
+                    <input type="file" id="input-arquivo-gif" accept="image/gif,image/webp" hidden>
+
+                    <label for="url-gif-fundo">Ou cole a URL do GIF</label>
+                    <input
+                        type="url"
+                        id="url-gif-fundo"
+                        placeholder="https://exemplo.com/fundo.gif">
+
+                    <label for="alvo-gif-fundo">Onde aplicar o GIF</label>
+                    <select id="alvo-gif-fundo">
+                        <option value="body" selected>Fundo inteiro do site</option>
+                        <option value="hero">Apenas no Hero (página inicial)</option>
+                        <option value="intro">Topo das páginas internas</option>
+                    </select>
+
+                    <div class="perfil-acoes">
+                        <button type="button" class="btn-secundario" id="btn-salvar-gif" style="background: #2563eb;">
+                            Salvar e ativar GIF
+                        </button>
+                        <button type="button" class="logout-btn" id="btn-retirar-gif">
+                            Retirar GIF (voltar ao fundo antigo)
+                        </button>
+                    </div>
+
+                    <p id="status-gif" role="status" aria-live="polite" style="margin-top: 15px;"></p>
+                </div>
+            </div>
+        </section>
+
+             
 
             </form>
 

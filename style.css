@@ -725,3 +725,41 @@ body::after {
         transform: none;
     }
 }
+/* ======================================
+   QUADROS TRANSPARENTES QUANDO HÁ GIF DE FUNDO
+   ====================================== */
+
+body.gif-ativo::before {
+    opacity: 0.12;
+}
+
+body.gif-ativo::after {
+    opacity: 0.25;
+}
+
+body.gif-ativo .hero,
+body.gif-ativo .atualidade,
+body.gif-ativo .sobre-mim,
+body.gif-ativo .formacao,
+body.gif-ativo .interesses,
+body.gif-ativo .objetivos,
+body.gif-ativo .login-box,
+body.gif-ativo .contato-container,
+body.gif-ativo .projetos-section,
+body.gif-ativo .dash-form,
+body.gif-ativo .perfil-section,
+body.gif-ativo .leads-section,
+body.gif-ativo .projeto-card,
+body.gif-ativo .lead-card,
+body.gif-ativo .card-projeto-publico,
+body.gif-ativo #lista-projetos article,
+body.gif-ativo .modal-edicao-box {
+    background: rgba(10, 15, 32, 0.36) !important;
+    backdrop-filter: blur(8px) saturate(135%);
+    -webkit-backdrop-filter: blur(8px) saturate(135%);
+    border-color: rgba(0, 240, 255, 0.28);
+}
+
+body.gif-ativo .header {
+    background: rgba(5, 7, 17, 0.48) !important;
+}

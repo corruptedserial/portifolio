@@ -408,6 +408,183 @@ if (btnSalvarPerfil) {
 }
 
 // ======================================
+// GIF DE FUNDO DO SITE (SUPABASE)
+// ======================================
+
+const previewGifFundo = document.getElementById("gif-fundo-preview");
+const btnEscolherGif = document.getElementById("btn-escolher-gif");
+const inputArquivoGif = document.getElementById("input-arquivo-gif");
+const inputUrlGifFundo = document.getElementById("url-gif-fundo");
+const selectAlvoGifFundo = document.getElementById("alvo-gif-fundo");
+const btnSalvarGif = document.getElementById("btn-salvar-gif");
+const btnRetirarGif = document.getElementById("btn-retirar-gif");
+const statusGif = document.getElementById("status-gif");
+
+let gifAtualBase64OuUrl = "";
+
+function atualizarPreviewGif(src, ativo) {
+    if (!previewGifFundo) return;
+
+    if (ativo && src) {
+        previewGifFundo.style.backgroundImage = `
+            linear-gradient(rgba(5, 7, 17, 0.55), rgba(5, 7, 17, 0.72)),
+            url("${src}")
+        `;
+        previewGifFundo.textContent = "";
+    } else {
+        previewGifFundo.style.backgroundImage = "";
+        previewGifFundo.style.background =
+            "radial-gradient(circle at 20% 20%, rgba(0, 240, 255, 0.25), rgba(14, 20, 42, 0.95))";
+        previewGifFundo.textContent = "Fundo padrão ativo";
+    }
+}
+
+async function carregarConfigGifFundo() {
+    try {
+        const { data, error } = await supabaseClient
+            .from("usuario")
+            .select("gif_fundo, gif_ativo, gif_alvo")
+            .eq("id", usuarioId)
+            .single();
+
+        if (error) throw error;
+        if (!data) return;
+
+        gifAtualBase64OuUrl = data.gif_fundo || "";
+        const ativo = Boolean(data.gif_ativo) && Boolean(gifAtualBase64OuUrl);
+        const alvo = ["body", "hero", "intro"].includes(data.gif_alvo) ? data.gif_alvo : "body";
+
+        if (gifAtualBase64OuUrl && !gifAtualBase64OuUrl.startsWith("data:image/") && inputUrlGifFundo) {
+            inputUrlGifFundo.value = gifAtualBase64OuUrl;
+        }
+        if (selectAlvoGifFundo) {
+            selectAlvoGifFundo.value = alvo;
+        }
+
+        atualizarPreviewGif(gifAtualBase64OuUrl, ativo);
+    } catch (err) {
+        console.error("Erro ao carregar GIF de fundo:", err);
+    }
+}
+
+if (btnEscolherGif && inputArquivoGif) {
+    btnEscolherGif.addEventListener("click", () => {
+        inputArquivoGif.click();
+    });
+
+    inputArquivoGif.addEventListener("change", () => {
+        const arquivo = inputArquivoGif.files && inputArquivoGif.files[0];
+        if (!arquivo) return;
+
+        const leitor = new FileReader();
+        leitor.onload = () => {
+            gifAtualBase64OuUrl = String(leitor.result || "");
+            if (inputUrlGifFundo) inputUrlGifFundo.value = "";
+            atualizarPreviewGif(gifAtualBase64OuUrl, true);
+        };
+        leitor.readAsDataURL(arquivo);
+    });
+}
+
+if (inputUrlGifFundo) {
+    inputUrlGifFundo.addEventListener("input", () => {
+        const url = inputUrlGifFundo.value.trim();
+        gifAtualBase64OuUrl = url;
+        atualizarPreviewGif(url, Boolean(url));
+    });
+}
+
+if (btnSalvarGif) {
+    btnSalvarGif.addEventListener("click", async () => {
+        const srcFinal =
+            (inputUrlGifFundo && inputUrlGifFundo.value.trim()) ||
+            gifAtualBase64OuUrl ||
+            "";
+        const alvoFinal = selectAlvoGifFundo ? selectAlvoGifFundo.value : "body";
+
+        if (!srcFinal) {
+            if (statusGif) {
+                statusGif.textContent = "Escolha um arquivo GIF ou cole uma URL antes de salvar.";
+                statusGif.style.color = "#dc2626";
+            }
+            return;
+        }
+
+        btnSalvarGif.disabled = true;
+        btnSalvarGif.textContent = "Salvando...";
+        if (statusGif) statusGif.textContent = "";
+
+        try {
+            const { error } = await supabaseClient
+                .from("usuario")
+                .update({
+                    gif_fundo: srcFinal,
+                    gif_ativo: true,
+                    gif_alvo: alvoFinal
+                })
+                .eq("id", usuarioId);
+
+            if (error) throw error;
+
+            gifAtualBase64OuUrl = srcFinal;
+            atualizarPreviewGif(srcFinal, true);
+
+            if (statusGif) {
+                statusGif.textContent = "GIF de fundo salvo e ativado no site!";
+                statusGif.style.color = "#16a34a";
+            }
+        } catch (err) {
+            console.error("Erro ao salvar GIF no Supabase:", err);
+            if (statusGif) {
+                statusGif.textContent = `Erro ao salvar GIF: ${err.message || "tente novamente."}`;
+                statusGif.style.color = "#dc2626";
+            }
+        } finally {
+            btnSalvarGif.disabled = false;
+            btnSalvarGif.textContent = "Salvar e ativar GIF";
+        }
+    });
+}
+
+if (btnRetirarGif) {
+    btnRetirarGif.addEventListener("click", async () => {
+        btnRetirarGif.disabled = true;
+        btnRetirarGif.textContent = "Retirando...";
+        if (statusGif) statusGif.textContent = "";
+
+        try {
+            const { error } = await supabaseClient
+                .from("usuario")
+                .update({
+                    gif_fundo: null,
+                    gif_ativo: false
+                })
+                .eq("id", usuarioId);
+
+            if (error) throw error;
+
+            gifAtualBase64OuUrl = "";
+            if (inputUrlGifFundo) inputUrlGifFundo.value = "";
+            if (inputArquivoGif) inputArquivoGif.value = "";
+            atualizarPreviewGif("", false);
+
+            if (statusGif) {
+                statusGif.textContent = "GIF retirado! O site voltou ao fundo antigo.";
+                statusGif.style.color = "#16a34a";
+            }
+        } catch (err) {
+            console.error("Erro ao retirar GIF no Supabase:", err);
+            if (statusGif) {
+                statusGif.textContent = `Erro ao retirar GIF: ${err.message || "tente novamente."}`;
+                statusGif.style.color = "#dc2626";
+            }
+        } finally {
+            btnRetirarGif.disabled = false;
+            btnRetirarGif.textContent = "Retirar GIF (voltar ao fundo antigo)";
+        }
+    });
+}
+// ======================================
 // CADASTRAR PROJETO
 // ======================================
 
@@ -786,5 +963,6 @@ if (btnSair) {
 // ======================================
 
 carregarConfigFotoPerfil();
+carregarConfigGifFundo();
 carregarProjetos();
 carregarLeads();
