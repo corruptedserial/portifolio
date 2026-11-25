@@ -763,3 +763,17 @@ body.gif-ativo .modal-edicao-box {
 body.gif-ativo .header {
     background: rgba(5, 7, 17, 0.48) !important;
 }
+.atualidade ul {
+    margin: 16px 0 26px;
+    padding-left: 22px;
+    display: grid;
+    gap: 12px;
+    color: var(--text-muted, #cbd5e1);
+    line-height: 1.65;
+}
+
+.atualidade h3 {
+    margin: 26px 0 10px;
+    font-size: 1.18rem;
+    color: var(--cor-ciano, #00ffff);
+}
